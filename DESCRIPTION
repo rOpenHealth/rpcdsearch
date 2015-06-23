@@ -1,8 +1,23 @@
 Package: rpcdsearch
-Title: What the package does (one line)
+Title: Identifies relevant clinical codes and automates the construction of
+    clinical code lists for primary care database studies
 Version: 0.1
-Authors@R: "First Last <first.last@example.com> [aut, cre]"
-Description: What the package does (one paragraph)
-Depends: R (>= 3.1.2)
-License: What license is it under?
+Authors@R: "David Springate <daspringate@gmail.com> [aut, cre]"
+Description: Identifies relevant clinical codes and automates the construction
+    of clinical code lists for primary care database studies. This function is
+    analogous to the Stata command rpcdsearch
+License: file LICENSE
+Depends:
+    R (>= 3.1.2)
+Imports:
+    assertthat,
+    stringr,
+    dplyr,
+    combinat,
+    xlsx
+Suggests:
+    testthat,
+    roxygen2,
+    knitr
+VignetteBuilder: knitr
 LazyData: true
