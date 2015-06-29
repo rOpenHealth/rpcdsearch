@@ -11,7 +11,8 @@ This package will very likely be merged with the rEHR package at some point. See
 
 The package is currently only tested with [CPRD](www.cprd.com) data, but it should be trivial to configure it with other EHR data.  See the [ehr_system](https://github.com/rOpenHealth/rpcdsearch/blob/master/R/ehr_system.R) code for details of how the interface with CPRD is implemented. This is the same system that is used in rEHR.
 
-Motivations and 
+Clinical code search and build methodology will be published in a forthcoming paper.
+
 rpcdsearch is not yet on CRAN but you can install from github using devtools:
 
 ```R
@@ -79,32 +80,13 @@ def <- MedicalDefinition(terms = list("peripheral vascular disease", "peripheral
          drugs = list("insulin", "diabet", "aspirin"))
 ```
 
+When searching for codes, a range of clinical codes can be searched for by providing two codes seperated by a hyphen. e.g. `E114-E117z`. 
+
 ### importing searches via a csv file
 
-Searches can be imported from a csv file of the following format:
+Searches can be imported from a csv file in [this format](https://github.com/rOpenHealth/rpcdsearch/blob/master/inst/extdata/example_search.csv)
 
-|definition|status|items|   |
-| -------- | ---- | ----| - | 
-|terms|include|peripheral vascular disease|
-|terms|include|peripheral gangrene|
-|terms|exclude|wrong answer|
-|terms|include|thromboangiitis obliterans|
-|terms|include|thromboangiitis obliterans|
-|terms|include|diabetic peripheral angiopathy|
-|terms|include|diabetes|peripheral angiopathy
-|terms|include|diabetes|peripheral angiopathy
-|terms|include|buerger| presenile_gangrene
-|terms|include|thromboangiitis obliterans|
-|terms|exclude|rubbish|
-|codes|include|G73|
-|drugs|include|insulin|
-|drugs|include|diabet|
-|drugs|include|aspirin|
-|drugcodes|include|1234|
-|tests|include|creatine|
-
-
-The first column in every row determines the list that the term applies to and the second column determines whether the term should be included or excluded. Note that the csv does not have to be a valid format for conversion to a dataframe.  extra columns can be used to include terms to be combined as an AND expression with the other terms on that row.  The title row can also be ommitted.
+The first column in every row determines the list that the term applies to and the second column determines whether the term should be included or excluded. Note that the csv does not have to be a valid format for conversion to a dataframe.  Extra columns can be used to include terms to be combined as an AND expression with the other terms on that row.  The title row can also be ommitted. You can use standard regex escape patterns in the term definitions.
 
 The data is called into `R` in the following way:
 

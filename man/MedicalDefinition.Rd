@@ -20,10 +20,13 @@ MedicalDefinition(terms = NULL, codes = NULL, tests = NULL,
 \description{
 Constructor function for MedicalDefinition class
 }
+\details{
+Elements marked with a "-" are excluded. Elements marked with a "r%" are resolved codes
+}
 \examples{
 def <- MedicalDefinition(terms = list(c("angina", "unstable"), c("angina", "Crescendo "),
                                       c("angina", "Refractory")),
-                         codes = list("G33..00", "G330.00"))
+                         codes = list("G33..00", "G330.00", "\%r212H", "-G617"))
 class(def)
 }
 

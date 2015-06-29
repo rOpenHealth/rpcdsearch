@@ -37,4 +37,14 @@ def_name <- "terms"
 input <- def$terms
 a <- build_definition_lists(def, medical_table,drug_table = drug_table)
 b <- build_definition_lists(def2, medical_table,drug_table = drug_table)
+medical <- read.delim("~/hspc//Main//Original_data/Data/Lookups/medical.txt")
+
+### smi
+medical_table <- read.delim("~/hspc//Main//Original_data/Data/Lookups/medical.txt", fileEncoding="latin1", stringsAsFactors = FALSE)
+input_file <- "inst/extdata/SMI_search.csv"
+def <- import_definitions("inst//extdata//SMI_search.csv")
+b <- definition_search(def, medical_table,drug_table = drug_table)
+
+
+
 

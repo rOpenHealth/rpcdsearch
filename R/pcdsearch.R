@@ -5,10 +5,13 @@
 #' @param tests list of character vectors or NULL
 #' @param drugs list of character vectors or NULL
 #' @param drugcodes list of character vectors or NULL
+#'
+#' @details
+#' Elements marked with a "-" are excluded. Elements marked with a "r%" are resolved codes
 #' @examples
 #' def <- MedicalDefinition(terms = list(c("angina", "unstable"), c("angina", "Crescendo "),
 #'                                       c("angina", "Refractory")),
-#'                          codes = list("G33..00", "G330.00"))
+#'                          codes = list("G33..00", "G330.00", "%r212H", "-G617"))
 #' class(def)
 MedicalDefinition <- function(terms = NULL, codes = NULL, tests = NULL,
                               drugs = NULL, drugcodes = NULL){
@@ -37,18 +40,22 @@ import_definitions <- function(input_file){
     n <- 1
 
     while (length(point <- readLines(con, n = 1, warn = FALSE)) > 0) {
+        point <- gsub("\\\\","\\", point) # get rid of double escape characters due to readLines
         point_data <- strsplit(point, ",")[[1]]
         if (all(point_data[1:3] == c("definition", "status", "items"))) {
             point <- readLines(con, n = 1, warn = FALSE)
             if(!length(point)) break
+            point <- gsub("\\\\","\\", point) # get rid of  double escape characters
             point_data <- strsplit(point, ",")[[1]]
         }
         assert_that(point_data[1] %in% names(def_list))
         if(point_data[2] == "include"){
             def_list[[point_data[1]]][[length(def_list[[point_data[1]]]) + 1]] <- point_data[3:length(point_data)]
+        } else if (point_data[2] == "resolved") {
+            def_list[[point_data[1]]][[length(def_list[[point_data[1]]]) + 1]] <- paste0("r%", point_data[3:length(point_data)])
         } else if (point_data[2] == "exclude"){
             def_list[[point_data[1]]][[length(def_list[[point_data[1]]]) + 1]] <- paste0("-", point_data[3:length(point_data)])
-        } else stop("You must choose to 'include' or 'exclude' each set")
+        } else stop("You must mark the 2nd column of each row as 'include', 'exclude', or 'resolved'")
         n <- n + 1
     }
     close(con)
@@ -137,11 +144,17 @@ definition_search <- function(def, medical_table = NULL, test_table = NULL,
 
     ## Builds the regex expression for the deired terms then extracts the matching terms from
     ## the lookup table
-    lookup_terms <- function(term_table, dname){
+
+    ### NEED TO GET RESOLVE CODES IN LOOKUP TERMS!!!!!
+    lookup_terms <- function(term_table){
         terms <- fix_case(def[[def_name]])
         excludes <- sapply(terms, function(x) substring(x, 1, 1)[1] == "-")
         exclude_terms <- check_terms(excludes, sub("^-", "", unlist(terms[excludes])))
+
         terms <- terms[!excludes]
+        resolved <- sapply(terms, function(x) substring(x, 1, 2)[1] == "r%")
+        resolved_terms <- check_terms(resolved, sub("^r%", "", terms[resolved]))
+
         simple_terms_p <- vapply(terms, function(x) length(x) == 1, TRUE)
         simple_terms <- check_terms(simple_terms_p,
                                     paste0("(", paste0(terms[simple_terms_p],
@@ -152,56 +165,102 @@ definition_search <- function(def, medical_table = NULL, test_table = NULL,
                                             collapse = "|"))
         regex <- paste0(complex_terms, "|", simple_terms, sep = "")
         exclude_regex <- paste0("(", paste0(exclude_terms, collapse = ")|("), ")")
-        if (length(lookup[[dname]]) == 1){
-            lookup_terms <- fix_case(term_table[[lookup[[dname]]]])
+        if (length(lookup[[def_name]]) == 1){
+            lookup_terms <- fix_case(term_table[[lookup[[def_name]]]])
         } else { # concatenate if multiple search variables
-            lookup_terms <- fix_case(apply(term_table[, lookup[[dname]]], 1,
+            lookup_terms <- fix_case(apply(term_table[, lookup[[def_name]]], 1,
                                            paste, sep = " ", collapse = " "))
         }
         matches <- str_detect(lookup_terms, regex) &
             !str_detect(lookup_terms, exclude_regex)
-        filter(term_table, matches)
+        terms_out <- filter(term_table, matches) %>%
+            mutate(resolved = 0)
+        terms_out$resolved[str_detect(terms_out[[lookup[[def_name]]]], resolved_terms)] <- 1
+        list(terms = terms_out, excludes = exclude_terms)
     }
+
+    lookup_codes <- function(term_table){
+        term_table <- arrange_(term_table, lookup$codes )
+        #   search.codes<-str_replace_all(search.codes,' ','')
+        #   search.codes.set<-unlist(str_split(search.codes,','))
+        codes <- unlist(def[[def_name]])
+        range_codes <- codes[str_detect(codes, ".+(-)")]
+
+        range_table_codes <- dplyr::bind_rows(lapply(range_codes, function(x){
+            rang.codes <- unlist(str_split(x, '-'))
+            rang.codes <- str_c('^',rang.codes)
+            pos.ini <- which(str_detect(term_table$readcode, rang.codes[1]))[1]
+            pos.fin <- which(str_detect(term_table$readcode, rang.codes[2]))
+            pos.fin <- pos.fin[length(pos.fin)]
+            term_table[pos.ini:pos.fin,]
+        })) %>%
+            mutate(resolved = 0)
+
+        ## remove exclusions and note resolves
+        single_codes <- codes[!codes %in% range_codes]
+        excludes <- sapply(single_codes, function(x) substring(x, 1, 1)[1] == "-")
+        exclude_codes <- check_terms(excludes, sub("^-", "", single_codes[excludes]))
+        resolved <- sapply(single_codes, function(x) substring(x, 1, 2)[1] == "r%")
+        resolved_codes <- paste(str_c("^", check_terms(resolved,
+                                                       sub("^r%", "", single_codes[resolved]))),
+                                collapse = "|")
+        single_codes <- single_codes[!excludes]
+        single_codes <-  sub("^r%", "", single_codes)
+        code_regex <- paste0(str_c('^', single_codes), collapse = "|")
+        exclude_regex <- paste0(str_c('^', exclude_codes), collapse = "|")
+        lookup_terms <- term_table[[lookup[[def_name]]]]
+        matches <- str_detect(lookup_terms, code_regex) &
+            !str_detect(lookup_terms, exclude_regex)
+        code_table <- filter(term_table, matches)
+        code_table$resolved <- 0
+        code_table$resolved[ str_detect(code_table$readcode, resolved_codes)] <- 1
+
+        all_codes <- dplyr::bind_rows(code_table, range_table_codes) %>%
+            dplyr::distinct_(lookup$codes)
+
+        list(codes = all_codes, excludes = exclude_codes)
+    }
+
     ## cases for the different tables to be searched
     for(def_name in names(def)){
         if (def_name == "terms"){
             if (is.null(def[[def_name]])) {
-                terms_table <- NULL
+                all_terms <- NULL
                 next
             }
             assert_that(!is.null(medical_table))
-            terms_table <- lookup_terms(term_table = medical_table, dname = "terms")
+            all_terms <- lookup_terms(term_table = medical_table)
         } else if (def_name == "codes"){
             if (is.null(def[[def_name]])) {
-                codes_table <- NULL
+                all_codes <- NULL
                 next
             }
             assert_that(!is.null(medical_table))
-            codes_table <- lookup_terms(term_table = medical_table, dname = "codes")
+            all_codes <- lookup_codes(term_table = medical_table)
         } else if (def_name == "drugs"){
             if (is.null(def[[def_name]])) {
-                drugs_table <- NULL
+                all_drugs <- NULL
                 next
             }
             assert_that(!is.null(drug_table))
-            drugs_table <- lookup_terms(term_table = drug_table, dname = "drugs")
+            all_drugs <- lookup_terms(term_table = drug_table)
         } else if (def_name == "tests"){
             if (is.null(def[[def_name]])) {
-                tests_table <- NULL
+                all_tests <- NULL
                 next
             }
             assert_that(!is.null(test_table))
-            tests_table <- lookup_terms(term_table = test_table, dname = "tests")
+            all_tests <- lookup_terms(term_table = test_table)
         }
     }
     ## combine terms and codes tables, removing duplicates
-    if(!is.null(terms_table) && !is.null(codes_table)){
-        combined_terms_codes <- dplyr::bind_rows(terms_table, codes_table) %>%
+    if(!is.null(all_terms) && !is.null(all_codes)){
+        combined_terms_codes <- dplyr::bind_rows(all_terms$terms, all_codes$codes) %>%
             dplyr::distinct_(lookup$codes)
     } else combined_terms_codes <- NULL
-    list(terms_table = terms_table, codes_table = codes_table,
+    list(terms_table = all_terms$terms, codes_table = all_codes$codes,
          combined_terms_codes = combined_terms_codes,
-         drugs_table = drugs_table, tests_table = tests_table)
+         drugs_table = all_drugs$terms, tests_table = all_tests$terms)
 }
 
 #' Basic print method for medical definition classes

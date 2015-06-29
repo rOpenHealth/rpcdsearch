@@ -3,3 +3,4 @@
 dev.R
 bin/*
 .travis.yml
+previous/*
