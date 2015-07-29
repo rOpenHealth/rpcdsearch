@@ -145,7 +145,6 @@ definition_search <- function(def, medical_table = NULL, test_table = NULL,
     ## Builds the regex expression for the deired terms then extracts the matching terms from
     ## the lookup table
 
-    ### NEED TO GET RESOLVE CODES IN LOOKUP TERMS!!!!!
     lookup_terms <- function(term_table){
         terms <- fix_case(def[[def_name]])
         excludes <- sapply(terms, function(x) substring(x, 1, 1)[1] == "-")

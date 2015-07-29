@@ -7,13 +7,11 @@ Identifies relevant clinical codes and automates the construction of clinical co
 David A. Springate, Evangelos Kontopantelis
 
 
-This package will very likely be merged with the rEHR package at some point. See the [rEHR vignette](https://github.com/rOpenHealth/rEHR/blob/master/vignettes/introduction-to-rehr.pdf) for more details on this package.
-
-The package is currently only tested with [CPRD](www.cprd.com) data, but it should be trivial to configure it with other EHR data.  See the [ehr_system](https://github.com/rOpenHealth/rpcdsearch/blob/master/R/ehr_system.R) code for details of how the interface with CPRD is implemented. This is the same system that is used in rEHR.
+This package has been merged with the [rEHR](https://github.com/rOpenHealth/rEHR/blob/master/vignettes/introduction-to-rehr.pdf) package. See the [rEHR codelists vignette](https://github.com/rOpenHealth/rEHR/blob/master/vignettes/codelists.pdf) for details and see the [Introduction to rEHR vignette](https://github.com/rOpenHealth/rEHR/blob/master/vignettes/introduction-to-rehr.pdf) for more details on this package. Further updates will be made there and this repository will no longer be updated.
 
 Clinical code search and build methodology will be published in a forthcoming paper.
 
-rpcdsearch is not yet on CRAN but you can install from github using devtools:
+rpcdsearch is not on CRAN but you can install from github using devtools:
 
 ```R
 install.packages("devtools")
@@ -121,6 +119,3 @@ The code lists produced by `build_definition_lists` will often want to be review
 out_file <- "def_searches.xlsx"
 export_definition_search(draft_lists, out_file)
 ```
-
-
-Issues can be reported [here](https://github.com/rOpenHealth/rpcdsearch/issues).
