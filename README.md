@@ -4,10 +4,9 @@
 
 Identifies relevant clinical codes and automates the construction of clinical code lists
 
-David A. Springate, Evangelos Kontopantelis
+David A. Springate, Evangelos Kontopantelis, Ivan Olier.
 
-
-This package has been merged with the [rEHR](https://github.com/rOpenHealth/rEHR/blob/master/vignettes/introduction-to-rehr.pdf) package. See the [rEHR codelists vignette](https://github.com/rOpenHealth/rEHR/blob/master/vignettes/codelists.pdf) for details and see the [Introduction to rEHR vignette](https://github.com/rOpenHealth/rEHR/blob/master/vignettes/introduction-to-rehr.pdf) for more details on this package. Further updates will be made there and this repository will no longer be updated.
+Development of this package has been frozen. This package has been merged with the [rEHR](https://github.com/rOpenHealth/rEHR/blob/master/vignettes/introduction-to-rehr.pdf) package. See the [rEHR codelists vignette](https://github.com/rOpenHealth/rEHR/blob/master/vignettes/codelists.pdf) for details and see the [Introduction to rEHR vignette](https://github.com/rOpenHealth/rEHR/blob/master/vignettes/introduction-to-rehr.pdf) for more details on this package. Further updates will be made there.
 
 Clinical code search and build methodology will be published in a forthcoming paper.
 

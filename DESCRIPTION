@@ -1,12 +1,21 @@
 Package: rpcdsearch
-Title: Identifies relevant clinical codes and automates the construction of
-    clinical code lists for primary care database studies
-Version: 0.1
-Authors@R: "David Springate <daspringate@gmail.com> [aut, cre]"
-Description: Identifies relevant clinical codes and automates the construction
-    of clinical code lists for primary care database studies. This function is
-    analogous to the Stata command rpcdsearch
-License: file LICENSE
+Title: Tools for the Construction of Clinical Code Lists for Primary Care
+    Database Studies
+Version: 1.0
+Authors@R: c(person("David", "Springate", email = "daspringate@gmail.com",
+    role = c("aut", "cre")),
+    person("Evangelos", "Kontopantelis",
+    role = c("ctb")),
+    person("Ivan", "Olier",
+    role = c("ctb")))
+Author: David Springate [aut, cre],
+    Evangelos Kontopantelis [ctb],
+    Ivan Olier [ctb]
+Maintainer: David Springate <daspringate@gmail.com>
+Description: This package allows users to identify relevant clinical codes and
+    automate the construction of clinical code lists for primary care database
+    studies. This package is analogous to the Stata command pcdsearch.
+License: GPL (>= 2)
 Depends:
     R (>= 3.1.2)
 Imports:

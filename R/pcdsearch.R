@@ -125,8 +125,8 @@ definition_search <- function(def, medical_table = NULL, test_table = NULL,
         if(is(input, "list")){
             lapply(input, fix_case)
         } else {
-            ifelse(toupper(input) == input, str_replace_all(input, "_", " "),
-                   tolower(str_replace_all(input, "_", " ")))
+            ifelse(toupper(input) == input, stringr::str_replace_all(input, "_", " "),
+                   tolower(stringr::str_replace_all(input, "_", " ")))
         }
     }
     ## convert character vector s to a regex AND with any word order
@@ -172,8 +172,7 @@ definition_search <- function(def, medical_table = NULL, test_table = NULL,
         }
         matches <- str_detect(lookup_terms, regex) &
             !str_detect(lookup_terms, exclude_regex)
-        terms_out <- filter(term_table, matches) %>%
-            mutate(resolved = 0)
+        terms_out <- mutate(filter(term_table, matches), resolved = 0)
         terms_out$resolved[str_detect(terms_out[[lookup[[def_name]]]], resolved_terms)] <- 1
         list(terms = terms_out, excludes = exclude_terms)
     }
@@ -183,17 +182,16 @@ definition_search <- function(def, medical_table = NULL, test_table = NULL,
         #   search.codes<-str_replace_all(search.codes,' ','')
         #   search.codes.set<-unlist(str_split(search.codes,','))
         codes <- unlist(def[[def_name]])
-        range_codes <- codes[str_detect(codes, ".+(-)")]
+        range_codes <- codes[stringr::str_detect(codes, ".+(-)")]
 
-        range_table_codes <- dplyr::bind_rows(lapply(range_codes, function(x){
+        range_table_codes <- dplyr::mutate(dplyr::bind_rows(lapply(range_codes, function(x){
             rang.codes <- unlist(str_split(x, '-'))
             rang.codes <- str_c('^',rang.codes)
-            pos.ini <- which(str_detect(term_table$readcode, rang.codes[1]))[1]
-            pos.fin <- which(str_detect(term_table$readcode, rang.codes[2]))
+            pos.ini <- which(stringr::str_detect(term_table$readcode, rang.codes[1]))[1]
+            pos.fin <- which(stringr::str_detect(term_table$readcode, rang.codes[2]))
             pos.fin <- pos.fin[length(pos.fin)]
             term_table[pos.ini:pos.fin,]
-        })) %>%
-            mutate(resolved = 0)
+        })), resolved = 0)
 
         ## remove exclusions and note resolves
         single_codes <- codes[!codes %in% range_codes]
@@ -214,8 +212,8 @@ definition_search <- function(def, medical_table = NULL, test_table = NULL,
         code_table$resolved <- 0
         code_table$resolved[ str_detect(code_table$readcode, resolved_codes)] <- 1
 
-        all_codes <- dplyr::bind_rows(code_table, range_table_codes) %>%
-            dplyr::distinct_(lookup$codes)
+        all_codes <- dplyr::distinct_(dplyr::bind_rows(code_table, range_table_codes),
+            lookup$codes)
 
         list(codes = all_codes, excludes = exclude_codes)
     }
@@ -254,8 +252,9 @@ definition_search <- function(def, medical_table = NULL, test_table = NULL,
     }
     ## combine terms and codes tables, removing duplicates
     if(!is.null(all_terms) && !is.null(all_codes)){
-        combined_terms_codes <- dplyr::bind_rows(all_terms$terms, all_codes$codes) %>%
-            dplyr::distinct_(lookup$codes)
+        combined_terms_codes <- dplyr::distinct_(dplyr::bind_rows(all_terms$terms,
+                                                                  all_codes$codes),
+                                                 lookup$codes)
     } else combined_terms_codes <- NULL
     list(terms_table = all_terms$terms, codes_table = all_codes$codes,
          combined_terms_codes = combined_terms_codes,
