@@ -57,9 +57,10 @@ get_EHR_attribute <- function(x = NULL){
 #' @export
 #' @param x an ehr attribute name
 #' @param value the value to set to the attribute
-#' @examples
+#' @examples  {
 #' set_CPRD()
 #' set_EHR_attribute(practice_id, "pracid")
+#' }
 set_EHR_attribute <- function(x, value){
     x <- deparse(substitute(x))
     assign(x, value, envir = .ehr)

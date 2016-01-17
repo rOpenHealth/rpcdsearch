@@ -17,7 +17,7 @@ Description: This package allows users to identify relevant clinical codes and
     studies. This package is analogous to the Stata command pcdsearch.
 License: GPL (>= 2)
 Depends:
-    R (>= 3.1.2)
+    R (>= 3.1.0)
 Imports:
     assertthat,
     stringr,
@@ -30,3 +30,4 @@ Suggests:
     knitr
 VignetteBuilder: knitr
 LazyData: true
+RoxygenNote: 5.0.1
